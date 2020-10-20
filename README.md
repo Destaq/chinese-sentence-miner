@@ -3,13 +3,15 @@ Filter and sort 18 000+ Simplified Chinese sentences to find those just right fo
 
 This program is perfect for finding new sentences that you'll be able to understand (e.g. for flashcards, rote learning) as well as visualizing your comprehension of Chinese texts.
 
+![](images/sample.png "program generating sentences")
+
 ## Features
 *By adding a `.txt` document with your known vocabulary (such as `data/known.txt`) you can use the program to assign each sentence a 'custom ratio' - your known words divided by total words.*
 
 - Assign custom ratios to sentences based on your known vocabulary
 - Access sentences through a variety of filtering methods, such as by...
     - searching for specific word(s) in sentences
-    - search for sentences within an HSK or custom ratio range.
+    - searching for sentences within an HSK or custom ratio range.
     - choosing the maximum number of sentences you'll get.
     - defining the minimum understanding of a sentence required.
 - Visually graph your understanding of sentences
@@ -24,10 +26,14 @@ This program is perfect for finding new sentences that you'll be able to underst
 3. Install Python requirements with `python3 -m pip install -r requirements.txt`.
 4. Run `python3 assigner.py` with your [desired flags](#flags).
 
+*Note: parsing nearly 20 000 sentences takes time. Commands take roughly 15-25 seconds to execute.*
+
 ### Flags
 `chinese-sentence-miner` has many flags you can use to filter or visualize sentences. If you're ever lost, you can always type in `python3 assigner.py --help` to see the flags and their descriptions, or consult this guide.
 
 Detailed information about each flag is in this section. To see some examples (recommended for new users), you can go down to the [examples](#examples) section.
+
+*Note: True/False flags **must** be set using a capital T and capital S.*
 
 ```
 usage: assigner.py [-h] [-v VISUALIZE] [-l LOCATION] -t TYPESPLIT [-s SORT] [--string STRING] [--smallest SMALLEST] [-e EASY] [-i INCLUDE] [--limit LIMIT] [-m MINE] [-d DEVIATION] [--target TARGET] [-o OUTPUT]
@@ -66,7 +72,7 @@ This flag governs where your known vocabulary is. The example known vocabulary i
 
 **Important flag!**
 
-When searching for sentences, you can use `output` to specify whether the other flags refer to sentences using `"HSK"` or `"custom"` (for custom ratios). This also governs whether the visualization is of HSK or the custom ratio.
+When searching for sentences, you can use `output` to specify whether the other flags refer to sentences using `"HSK"` or `"custom"` (for custom ratios).
 
 #### mine
 *Flags: `-m`, `--mine`*
@@ -148,7 +154,7 @@ python3 assigner.py -l "data/known.txt" -t "wo" -o "HSK" --mine "True" --string 
 
 *Sort `sentences.tsv` based on ascending HSK averages using character splitting, and then create a line chart of it.*
 ```bash
-python3 assigner.py -l "data/known.txt" -t "ch" -o "HSK" -s "HSK" -v "HSK"   
+python3 assigner.py -l "data/known.txt" -t "ch" -o "HSK" -s "HSK" -v "True"   
 ```
 
 *Sort `sentences.tsv` based on descending custom ratio order using word-by-word splitting. Then search all sentences that contain both 我 and 你, searching for sentences based on custom ratio and ensuring they all have at least 40% of their words understood. Pick any sentences between 0.4 and 1 comprehension (i.e. not only those with the highest comprehension).*
