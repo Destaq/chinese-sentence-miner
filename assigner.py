@@ -13,7 +13,7 @@ parser.add_argument(
     "-v",
     "--visualize",
     required=False,
-    default=False,
+    default="False",
     help="whether to visualize results",
 )
 parser.add_argument(
@@ -26,7 +26,7 @@ parser.add_argument(
 parser.add_argument(
     "-t",
     "--typesplit",
-    required=True,
+    required=False,
     default="wo",
     help="whether to split sentences character by character (ch) or word by word (wo)",
 )
@@ -53,14 +53,14 @@ parser.add_argument(
     "-e",
     "--easy",
     required=False,
-    default=True,
+    default="True",
     help="whether to output 'custom' sentences the user is most likely to understand (default True), as opposed to any sentences above the `smallest`",
 )
 parser.add_argument(
     "-i",
     "--include",
     required=False,
-    default=True,
+    default="True",
     help="whether to add custom sentence ratio to `data/sentences.tsv` (requires `location`, default True (with working `location`))",
 )
 parser.add_argument(
@@ -70,7 +70,7 @@ parser.add_argument(
     "-m",
     "--mine",
     required=False,
-    default=False,
+    default="False",
     help="whether or not to mine sentences (default is False)",
 )
 parser.add_argument(
@@ -397,7 +397,7 @@ else:
     else:
         manager = SentenceAssigner(args["location"])
 
-if bool(args["include"]) == False:
+if eval(args["include"]) == False:
     manager.parse_document()
 else:
     manager.parse_document(custom=True)
@@ -408,7 +408,7 @@ if args["sort"] == "custom":
 else:
     manager.sort_file()
 
-if bool(args["visualize"]) == True:
+if eval(args["visualize"]) == True:
     if args["output"] == "custom":
         visualizer = DataVisualizer(key="custom")
     else:
@@ -416,13 +416,13 @@ if bool(args["visualize"]) == True:
 
     visualizer.visualize()
 
-if bool(args["mine"]) == True:
+if eval(args["mine"]) == True:
     if args["output"] == "custom":
         ordered_sentences = best_sentences(
             args["string"],
             minimum=float(args["smallest"]),
             limit=int(args["limit"]),
-            highest=bool(args["easy"]),
+            highest=eval(args["easy"]),
         )
 
         for sentence in ordered_sentences:
