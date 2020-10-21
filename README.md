@@ -20,6 +20,12 @@ This program is perfect for finding new sentences that you'll be able to underst
 
 ## Usage
 
+**If you are unfamiliar with coding, you can also run the code online.**
+
+[Run online](https://repl.it/@andersoncliffb/chinese-sentence-miner#README.md).
+
+Make sure to check out at least the [examples](#examples) page to understand how to run the code.
+
 ### Installation
 1. Download this repository by clicking the green `code` button on the top right.
 2. Navigate to wherever the folder with the program is stored in your Terminal.
