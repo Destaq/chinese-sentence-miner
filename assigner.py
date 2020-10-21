@@ -108,7 +108,7 @@ class SentenceAssigner:
     """
 
     # read HSK json as dict
-    file = open("data/hsk.json", "r")
+    file = open("data/hsk.json", "r", encoding="utf-8")
     levels = json.load(file)
     file.close()
 
@@ -123,7 +123,7 @@ class SentenceAssigner:
         self.char_by_char = char_by_char
 
         if vocab_location is not None:
-            self.known_words = open(vocab_location, "r").read().splitlines()
+            self.known_words = open(vocab_location, "r", encoding="utf-8").read().splitlines()
         else:
             self.known_words = []
 
@@ -142,7 +142,7 @@ class SentenceAssigner:
         """
 
         # open document for writing
-        with open("data/sentences.tsv", "w") as writer:
+        with open("data/sentences.tsv", "w", encoding="utf-8") as writer:
             writer.write(
                 "// Characters | Pinyin | Meaning | HSK average | Custom Ratio\n"
             )  # initial line
@@ -187,7 +187,7 @@ class SentenceAssigner:
 
         self.custom = custom
 
-        with open("data/sentences.tsv", "r") as file:
+        with open("data/sentences.tsv", "r", encoding="utf-8") as file:
             self.sentences = file.readlines()[1:]
 
         for i in range(len(self.sentences)):
@@ -257,7 +257,7 @@ class DataVisualizer:
         self.key = key
 
         if self.key == "HSK":
-            with open("data/sentences.tsv", "r") as file:
+            with open("data/sentences.tsv", "r", encoding="utf-8") as file:
                 self.data = file.read().splitlines()[1:]
 
                 placeholder = []
@@ -278,7 +278,7 @@ class DataVisualizer:
                 self.data = placeholder
 
         elif self.key == "custom":
-            with open("data/sentences.tsv", "r") as file:
+            with open("data/sentences.tsv", "r", encoding="utf-8") as file:
                 self.data = file.read().splitlines()[1:]
 
                 placeholder = []
@@ -327,7 +327,7 @@ def best_sentences(
     `highest` (default True) -- whether to return only the most understood sentences or any sentences (up to limit) above `minimum`
     """
     sentences = []
-    with open("data/sentences.tsv", "r") as file:
+    with open("data/sentences.tsv", "r", encoding="utf-8") as file:
         for line in file.read().splitlines()[1:]:
             line = line.split("\t")
             in_line = True
@@ -357,7 +357,7 @@ def hsk_grabber(
     Search for sentences that contain words (space-separated) with `search_str` and set a sentence output limit with `limit`.
     """
     sentences = []
-    with open("data/sentences.tsv", "r") as file:
+    with open("data/sentences.tsv", "r", encoding="utf-8") as file:
         for line in file.read().splitlines()[1:]:
             line = line.split("\t")
             in_line = True
@@ -380,7 +380,7 @@ def hsk_grabber(
 # run file based on user input
 if "location" in args.keys():
     try:
-        file = open(args["location"], "r")
+        file = open(args["location"], "r", encoding="utf-8")
         file.close()
         if args["typesplit"] == "ch":
             manager = SentenceAssigner(args["location"], True)
