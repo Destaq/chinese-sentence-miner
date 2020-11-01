@@ -26,6 +26,10 @@ This program is perfect for finding new sentences that you'll be able to underst
 
 Make sure to check out at least the [examples](#examples) page to understand how to run the code.
 
+*Usage with Anki: create a field named `Sentences` for the card template you are using with Chinese words. Create a sorted `sentences.tsv` file based on (ideally) 'custom' understanding. Steadily cmd-f your way through each word in your Anki deck/use the CLI.*
+
+*Note: you can also try exporting Anki decks as a txt file, modifying them, and then re-importing them. Note that with CLI and depending on deck size, this may take some time.*
+
 ### Installation
 1. Download this repository by clicking the green `code` button on the top right.
 2. Navigate to wherever the folder with the program is stored in your Terminal.
