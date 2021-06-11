@@ -18,6 +18,8 @@ This program is perfect for finding new sentences that you'll be able to underst
 - Add and analyze your own sentences to the database
 - Sort sentences based on their average HSK level or your custom ratio
 
+Thanks to a contributor who reached out to me! You can now also download the sentences in a more database friendly format at `data/sentences.ods`, with curly quotes, Western->Chinese punctuation, and a removed software-specific column.
+
 ## High-level Overview
 The program is CLI-only, and contains ~18k sentences of varying difficulty stored in `data/sentences.tsv`, taken from Tatoeba. It allows you to search through these sentences using a simple set of rules - see **Usage**. While sentences can be searched for based on their HSK difficulty, the tool is most useful when you want to find sentences that *suit your level*.
 
