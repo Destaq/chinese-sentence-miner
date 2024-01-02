@@ -1,57 +1,73 @@
 import json
 import jieba
 import random
-import plotly.express as px
 import argparse
 import sys
+import matplotlib.pyplot as plt
+import numpy as np
 
-jieba.setLogLevel(20)  # Disable initialization info
+# Constants
+LOG_LEVEL = 20
+HSK_FILE_PATH = "data/hsk.json"
+SENTENCES_FILE_PATH = "data/sentences.tsv"
+PUNCTUATION_SET = set("，。/；‘、【】1234567890-=·§——+「」：“｜？》《！@#¥%&*（）")
+DEFAULT_KNOWN_VOCAB_LOCATION = "data/known.txt"
+DEFAULT_TARGET_HSK = 3.5
+DEFAULT_DEVIATION = 0.2
+DEFAULT_MINIMUM_RATIO = 0.6
+DEFAULT_LIMIT = 10
+
+# Set log level for jieba
+jieba.setLogLevel(LOG_LEVEL)
 
 class SentenceAssigner:
     def __init__(self, vocab_location=None, char_by_char=False):
         self.char_by_char = char_by_char
-        self.vocab_location = vocab_location
+        self.vocab_location = vocab_location or DEFAULT_KNOWN_VOCAB_LOCATION
         self._known_words = None
         self._hsk_data = None
-        self._punctuation = None
+        self._punctuation = PUNCTUATION_SET
         self.sentences = []
         self.custom = False
 
     @property
     def known_words(self):
         if self._known_words is None:
-            self._known_words = self.load_vocab(self.vocab_location) if self.vocab_location else []
+            self._known_words = self.load_vocab(self.vocab_location)
         return self._known_words
 
     @property
     def hsk_data(self):
         if self._hsk_data is None:
-            self._hsk_data, self._punctuation = self.load_hsk_data()
+            self._hsk_data = self.load_hsk_data()
         return self._hsk_data
 
-    @property
-    def punctuation(self):
-        if self._punctuation is None:
-            self._hsk_data, self._punctuation = self.load_hsk_data()
-        return self._punctuation
-
     def load_vocab(self, location):
-        with open(location, "r", encoding="utf-8") as file:
-            vocab = file.read().splitlines()
-        return {char for word in vocab for char in word} if self.char_by_char else set(vocab)
+        try:
+            with open(location, "r", encoding="utf-8") as file:
+                vocab = file.read().splitlines()
+            return {char for word in vocab for char in word} if self.char_by_char else set(vocab)
+        except IOError as e:
+            print(f"Error reading vocabulary file: {e}")
+            return set()
 
     def load_hsk_data(self):
-        with open("data/hsk.json", "r", encoding="utf-8") as file:
-            levels = json.load(file)
-        hsk_data = {definition["hanzi"]: definition["HSK"] for definition in levels}
-        punctuation = set("，。/；‘、【】1234567890-=·§——+「」：“｜？》《！@#¥%&*（）")
-        return hsk_data, punctuation
+        try:
+            with open(HSK_FILE_PATH, "r", encoding="utf-8") as file:
+                levels = json.load(file)
+            return {definition["hanzi"]: definition["HSK"] for definition in levels}
+        except IOError as e:
+            print(f"Error reading HSK data file: {e}")
+            return {}
 
     def parse_document(self, custom=False):
         self.custom = custom
-        with open("data/sentences.tsv", "r", encoding="utf-8") as file:
-            raw_sentences = file.readlines()[1:]
-        self.sentences = [self.process_sentence(line.split("\t")) for line in raw_sentences]
+        try:
+            with open(SENTENCES_FILE_PATH, "r", encoding="utf-8") as file:
+                raw_sentences = file.readlines()[1:]
+            self.sentences = [self.process_sentence(line.split("\t")) for line in raw_sentences]
+        except IOError as e:
+            print(f"Error reading sentences file: {e}")
 
     def process_sentence(self, sentence):
         words = list(jieba.cut(sentence[0])) if not self.char_by_char else list(sentence[0])
@@ -64,14 +80,14 @@ class SentenceAssigner:
         for word in words:
             if word in self.hsk_data:
                 total += self.hsk_data[word]
-            elif word not in self.punctuation:
+            elif word not in self._punctuation:
                 total += 7
-            count += 1 if word not in self.punctuation else 0
+            count += 1 if word not in self._punctuation else 0
         return round(total / count, 3) if count else 0
 
     def known_ratio(self, words):
-        total_count = len(words) - sum(1 for word in words if word in self.punctuation)
-        known_count = sum(word in self.known_words for word in words if word not in self.punctuation)
+        total_count = len(words) - sum(1 for word in words if word in self._punctuation)
+        known_count = sum(word in self.known_words for word in words if word not in self._punctuation)
         return round(known_count / total_count, 3) if total_count else 0
 
     def sort_file(self, key="HSK"):
@@ -85,41 +101,51 @@ class SentenceAssigner:
     def rewrite_file(self):
         header = "// Characters | Pinyin | Meaning | HSK average | Custom Ratio\n"
         lines = (f"{''.join(line[0])}\t{line[1]}\t{line[2]}\t{line[3]}\t{line[4] if self.custom else ''}\n" for line in self.sentences)
-        with open("data/sentences.tsv", "w", encoding="utf-8") as writer:
-            writer.write(header)
-            writer.writelines(lines)
-
+        try:
+            with open(SENTENCES_FILE_PATH, "w", encoding="utf-8") as writer:
+                writer.write(header)
+                writer.writelines(lines)
+        except IOError as e:
+            print(f"Error writing to sentences file: {e}")
 
 class DataVisualizer:
-    """
-    Visualizes the sentences in `data/sentences.tsv` based on rules as a line chart.
-    """
-
-    def __init__(self, key):
+    def __init__(self, file_path=SENTENCES_FILE_PATH, key="HSK"):
+        self.file_path = file_path
         self.key = key
         self.data, self.counter = self.load_and_process_data()
 
     def load_and_process_data(self):
         index = 3 if self.key == "HSK" else 4
-        with open("data/sentences.tsv", "r", encoding="utf-8") as file:
-            lines = file.read().splitlines()[1:]
+        try:
+            with open(self.file_path, "r", encoding="utf-8") as file:
+                lines = file.read().splitlines()[1:]
 
-        values = [float(line.split("\t")[index]) for line in lines]
-        unique_values = list(set(values))
-        counts = [values.count(val) for val in unique_values]
+            values = [float(line.split("\t")[index]) for line in lines if line.split("\t")[index]]
+            unique_values, counts = np.unique(values, return_counts=True)
 
-        return unique_values, counts
+            return unique_values, counts
+        except IOError as e:
+            print(f"Error reading visualization data file: {e}")
+            return np.array([]), np.array([])
 
     def visualize(self):
-        """
-        Performs visualization operation, outputting to a browser.
-        """
-        sorted_data = sorted(zip(self.data, self.counter))
-        sorted_values, sorted_counts = zip(*sorted_data)
-
-        fig = px.line(x=sorted_values, y=sorted_counts, labels={'x': self.key, 'y': 'Count'})
-        fig.show()
-
+        if len(self.data) == 0 or len(self.counter) == 0:
+            print("No data available to visualize.")
+            return
+    
+        plt.figure(figsize=(10, 6))
+        plt.bar(self.data, self.counter, color='skyblue')
+        plt.xlabel(self.key)
+        plt.ylabel('Count')
+        plt.title(f'Distribution of Sentences by {self.key} Level')
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+    
+        # Calculate the tick interval for approximately 20 ticks
+        data_range = max(self.data) - min(self.data)
+        tick_interval = max(1, int(data_range / 20))
+        plt.xticks(np.arange(min(self.data), max(self.data) + 1, tick_interval))
+    
+        plt.show()
 
 def best_sentences(search_str="", minimum=0.5, limit=10, highest=True) -> list:
     search_terms = search_str.split(" ")
